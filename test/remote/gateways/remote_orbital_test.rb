@@ -132,6 +132,60 @@ class RemoteOrbitalGatewayTest < Test::Unit::TestCase
     assert_false response.authorization.blank?
   end
 
+  def test_successful_authorization_with_3ds
+    cc = credit_card('4112344112344113', {
+      verification_value: '411',
+    })
+
+    assert response = @gateway.authorize(100, cc, @options.merge(
+      order_id: '2',
+      currency: 'USD',
+      three_d_secure: {
+        eci: '5',
+        cavv: 'AAABAIcJIoQDIzAgVAkiAAAAAAA=',
+        xid: 'AAABAIcJIoQDIzAgVAkiAAAAAAA=',
+      },
+      address: {
+        address1: '55 Forever Ave',
+        address2: '',
+        city: 'Concord',
+        state: 'NH',
+        zip: '03301',
+        country: 'US',
+      }
+    ))
+    assert_success response
+    assert_equal 'Approved', response.message
+    assert_false response.authorization.blank?
+  end
+
+  def test_successful_purchase_with_3ds
+    cc = credit_card('4112344112344113', {
+      verification_value: '411',
+    })
+
+    assert response = @gateway.purchase(100, cc, @options.merge(
+      order_id: '2',
+      currency: 'USD',
+      three_d_secure: {
+        eci: '5',
+        cavv: 'AAABAIcJIoQDIzAgVAkiAAAAAAA=',
+        xid: 'AAABAIcJIoQDIzAgVAkiAAAAAAA=',
+      },
+      address: {
+        address1: '55 Forever Ave',
+        address2: '',
+        city: 'Concord',
+        state: 'NH',
+        zip: '03301',
+        country: 'US',
+      }
+    ))
+    assert_success response
+    assert_equal 'Approved', response.message
+    assert_false response.authorization.blank?
+  end
+
   def test_successful_purchase_with_mit_stored_credentials
     mit_stored_credentials = {
       mit_msg_type: 'MUSE',

@@ -195,6 +195,8 @@ module ActiveMerchant #:nodoc:
         order = build_new_order_xml(AUTH_ONLY, money, creditcard, options) do |xml|
           add_creditcard(xml, creditcard, options[:currency])
           add_address(xml, creditcard, options)
+          add_3ds(xml, options)
+
           if @options[:customer_profiles]
             add_customer_data(xml, creditcard, options)
             add_managed_billing(xml, options)
@@ -215,6 +217,8 @@ module ActiveMerchant #:nodoc:
         order = build_new_order_xml(AUTH_AND_CAPTURE, money, creditcard, options) do |xml|
           add_creditcard(xml, creditcard, options[:currency])
           add_address(xml, creditcard, options)
+          add_3ds(xml, options)
+
           if @options[:customer_profiles]
             add_customer_data(xml, creditcard, options)
             add_managed_billing(xml, options)
@@ -419,6 +423,14 @@ module ActiveMerchant #:nodoc:
           xml.tag! :AVSDestname,        byte_limit(address[:dest_name], 30)
           xml.tag! :AVSDestcountryCode, (avs_supported ? address[:dest_country] : '')
         end
+      end
+
+      def add_3ds(xml, options)
+        return unless three_d_secure = options[:three_d_secure]
+
+        xml.tag!(:AuthenticationECIInd, three_d_secure[:eci]) if three_d_secure[:eci]
+        xml.tag!(:CAVV, three_d_secure[:cavv]) if three_d_secure[:cavv]
+        xml.tag!(:XID, three_d_secure[:xid]) if three_d_secure[:xid]
       end
 
       # For Profile requests
